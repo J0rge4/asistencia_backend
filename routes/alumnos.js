@@ -1,48 +1,64 @@
+// Importa Express para crear rutas.
 const express = require('express');
+// Crea una instancia de Router.
 const router = express.Router();
+// Conexión a la base de datos (asegúrate de que 'db' esté bien configurado)
 const db = require('../db');
+// Importa el middleware CORS
 const cors = require('cors');
 
-// Middleware CORS - ¡Añadido aquí al principio!
+// Middleware CORS para permitir solicitudes desde el frontend.
 router.use(cors({
-  origin: 'https://asistencia-front.netlify.app/', // Reemplaza con la URL de tu front-end
-  methods: ['GET', 'POST', 'DELETE'], // Especifica los métodos permitidos
-  allowedHeaders: ['Content-Type', 'Authorization'] // Especifica los encabezados permitidos
+  origin: 'https://asistencia-front.netlify.app', // Reemplaza con la URL de tu frontend
+  methods: ['GET', 'POST', 'DELETE'], // Métodos permitidos
+  allowedHeaders: ['Content-Type', 'Authorization'] // Encabezados permitidos
 }));
 
-
-//Define una ruta POST /api/alumnos/registrar.
+// Ruta POST /api/alumnos/registrar
 router.post('/registrar', (req, res) => {
-    // Extrae nombre y matricula del cuerpo del request (req.body), que viene desde el frontend cuando registras a un alumno.
     const { nombre, matricula } = req.body;
-    //Ejecuta un INSERT en la tabla usuarios, guardando:nombre: nombre del alumno,usuario: igual a la matrícula, contrasena: también igual a matrícula (puedes mejorar esto luego con seguridad),matricula: matrícula del alumno, "alumno": el valor fijo para la columna rol
+
+    // Verifica que los datos necesarios están presentes
+    if (!nombre || !matricula) {
+        return res.status(400).json({ error: 'Nombre y matrícula son requeridos' });
+    }
+
+    // Inserta en la base de datos
     db.query('INSERT INTO usuarios (nombre, usuario, contrasena, matricula, rol) VALUES (?, ?, ?, ?, "alumno")',
     [nombre, matricula, matricula, matricula], (err) => {
-        //Si hay error al insertar, devuelve un mensaje de error. Si funciona, responde con { success: true }.
-        if (err) return res.status(500).json({ error: 'Error al registrar' });
+        if (err) {
+            console.error('Error al registrar:', err);  // Loguea el error para depuración
+            return res.status(500).json({ error: 'Error al registrar alumno' });
+        }
         res.json({ success: true });
     });
 });
 
-//Define una ruta DELETE /api/alumnos/:matricula.
+// Ruta DELETE /api/alumnos/:matricula
 router.delete('/:matricula', (req, res) => {
-    // Borra al alumno con la matrícula recibida en la URL.
-    db.query('DELETE FROM usuarios WHERE matricula = ?', [req.params.matricula], (err) => {
-        //Si hay error, responde con 500. Si funciona, indica que fue exitoso.
-        if (err) return res.status(500).json({ error: 'Error al eliminar' });
+    const { matricula } = req.params;
+
+    // Elimina al alumno con la matrícula especificada
+    db.query('DELETE FROM usuarios WHERE matricula = ?', [matricula], (err) => {
+        if (err) {
+            console.error('Error al eliminar:', err);  // Loguea el error para depuración
+            return res.status(500).json({ error: 'Error al eliminar alumno' });
+        }
         res.json({ success: true });
     });
 });
 
-//Obtener lista de alumnos,  Ruta GET /api/alumnos
+// Ruta GET /api/alumnos para obtener la lista de alumnos
 router.get('/', (req, res) => {
-    //Consulta a todos los usuarios cuyo rol es "alumno". Solo devuelve nombre y matricula.
+    // Consulta a los usuarios cuyo rol es "alumno"
     db.query('SELECT nombre, matricula FROM usuarios WHERE rol = "alumno"', (err, results) => {
-        // Devuelve los resultados en formato JSON para que el frontend los muestre.
-        if (err) return res.status(500).json({ error: 'Error al obtener alumnos' });
-        res.json(results);
+        if (err) {
+            console.error('Error al obtener alumnos:', err);  // Loguea el error para depuración
+            return res.status(500).json({ error: 'Error al obtener alumnos' });
+        }
+        res.json(results);  // Responde con la lista de alumnos
     });
 });
 
-//Exporta las rutas para que puedan ser usadas en app.js
+// Exporta el router para ser usado en el archivo principal (app.js)
 module.exports = router;
