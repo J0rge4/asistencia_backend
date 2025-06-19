@@ -6,7 +6,7 @@ const router = express.Router();
 const db = require('../db');
 
 // Define una ruta POST /api/asistencia/pasar. Se usa cuando se quiere guardar la asistencia de varios alumnos.
-router.post('/pasar', async (req, res) => {
+router.post('/pasarLista', async (req, res) => {
     // Extrae del cuerpo de la petición: lista: un arreglo de alumnos, cada uno con su matrícula y si estuvo presente (true o false) fecha: la fecha del pase de lista (tipo YYYY-MM-DD)
     const { lista, fecha } = req.body;
 
