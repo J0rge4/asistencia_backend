@@ -1,24 +1,35 @@
-//Importa el módulo express, que se usa para crear servidores web rápidos en Node.js.
-const express = require('express'); 
-// Importa el módulo cors (Cross-Origin Resource Sharing) para permitir que tu frontend se comunique con el backend aunque estén en dominios distintos (útil si el frontend está en otro puerto o desplegado).
-const cors = require('cors');
-// Importa el módulo mysql2 para conectarse a la base de datos MySQL. Esta es una versión más moderna que mysql y soporta promesas.
-const mysql = require('mysql2');
-//Crea una aplicación de Express. Esta variable app se usa para definir rutas, middlewares, y configurar el servidor.
+require('dotenv').config();  // Carga las variables de entorno desde el archivo .env
+const mysql = require('mysql2/promise');  // Importa el cliente mysql2
+const express = require('express');  // Importa express
+
+// Configuración de Express
 const app = express();
-//Usa cors como middleware para permitir peticiones desde cualquier origen (por defecto). Esto habilita la comunicación entre frontend y backend.
-app.use(cors());
-//Permite que Express entienda datos JSON enviados en el cuerpo (body) de las peticiones HTTP como POST o PUT.
-app.use(express.json());
+const port = process.env.PORT || 3000;
 
-const authRoutes = require('./routes/auth'); //Importa el archivo auth.js ubicado en la carpeta /routes/.Ese archivo probablemente contiene rutas como /login, usadas para autenticar usuarios.
-const alumnoRoutes = require('./routes/alumnos'); //Importa el archivo alumnos.js, que contiene las rutas para registrar, listar o eliminar alumnos.
-const asistenciaRoutes = require('./routes/asistencia'); //Importa el archivo asistencia.js, donde están las rutas que permiten pasar lista o consultar asistencias.
+async function createConnection() {
+    try {
+        // URL pública de conexión proporcionada por Railway (modificada)
+        const mysqlURL = process.env.MYSQL_URL || "mysql://root:JQSdBkXHUuBFpkOkWpPHlSkequoaHmPX@hopper.proxy.rlwy.net:38737/railway";
+        
+        // Crea la conexión con la base de datos usando la URL de Railway
+        const connection = await mysql.createConnection(mysqlURL);
 
+        // Probar la conexión a la base de datos
+        const [rows, fields] = await connection.execute('SELECT NOW()');
+        console.log('Conectado a la base de datos en Railway');
+        console.log('Fecha y hora de la base de datos:', rows[0]['NOW()']);
 
-app.use('/api/auth', authRoutes); //Cada vez que alguien acceda a /api/auth, usa las rutas que están definidas en authRoutes
-app.use('/api/alumnos', alumnoRoutes); // Asocia todas las rutas de alumnos.
-app.use('/api/asistencia', asistenciaRoutes); //Asocia las rutas que gestionan la asistencia.
+        return connection;
+    } catch (error) {
+        console.error('Error al conectar a la base de datos:', error.message);
+        process.exit(1);  // Si no se puede conectar, termina la aplicación
+    }
+}
 
-// Inicia el servidor y lo deja escuchando en el puerto 3000.Cuando abras http://localhost:3000 desde el navegador o el frontend, este será el backend que responde.
-app.listen(3000, () => console.log("Servidor corriendo en puerto 3000"));
+// Conexión a la base de datos
+createConnection();
+
+// Iniciar servidor Express
+app.listen(port, () => {
+  console.log(`Servidor escuchando en el puerto ${port}`);
+});
