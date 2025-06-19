@@ -10,7 +10,7 @@ const port = process.env.PORT || 3000;
 
 // Configura CORS para permitir solicitudes desde el dominio del frontend (Netlify)
 app.use(cors({
-  origin: 'https://asistencia-front.netlify.app/maestro/maestro.html',  // Cambia esto si tu frontend está en otro dominio
+  origin: 'https://asistencia-front.netlify.app',  // Cambia esto si tu frontend está en otro dominio
   methods: ['GET', 'POST', 'DELETE'],
   allowedHeaders: ['Content-Type', 'Authorization']
 }));
