@@ -1,11 +1,17 @@
-// Importa el framework Express para crear rutas.
-const express = require('express'); 
-// Crea una instancia de Router, una herramienta de Express para modularizar las rutas.En lugar de escribir todo en app.js, las organizamos por archivo.
-const router = express.Router(); 
-// Importa la conexión MySQL configurada en db.js.Esto te permite hacer consultas SQL directamente desde este archivo.
+const express = require('express');
+const router = express.Router();
 const db = require('../db');
+const cors = require('cors');
 
- //Define una ruta POST /api/alumnos/registrar.
+// Middleware CORS - ¡Añadido aquí al principio!
+router.use(cors({
+  origin: 'https://asistencia-front.netlify.app', // Reemplaza con la URL de tu front-end
+  methods: ['GET', 'POST', 'DELETE'], // Especifica los métodos permitidos
+  allowedHeaders: ['Content-Type', 'Authorization'] // Especifica los encabezados permitidos
+}));
+
+
+//Define una ruta POST /api/alumnos/registrar.
 router.post('/registrar', (req, res) => {
     // Extrae nombre y matricula del cuerpo del request (req.body), que viene desde el frontend cuando registras a un alumno.
     const { nombre, matricula } = req.body;
