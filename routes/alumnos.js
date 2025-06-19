@@ -5,7 +5,7 @@ const cors = require('cors');
 
 // Middleware CORS - ¡Añadido aquí al principio!
 router.use(cors({
-  origin: 'https://asistencia-front.netlify.app/maestro/maestro.html', // Reemplaza con la URL de tu front-end
+  origin: 'https://asistencia-front.netlify.app/', // Reemplaza con la URL de tu front-end
   methods: ['GET', 'POST', 'DELETE'], // Especifica los métodos permitidos
   allowedHeaders: ['Content-Type', 'Authorization'] // Especifica los encabezados permitidos
 }));
