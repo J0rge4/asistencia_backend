@@ -2,6 +2,7 @@ require('dotenv').config();  // Carga las variables de entorno desde el archivo 
 const mysql = require('mysql2/promise');  // Importa el cliente mysql2
 const express = require('express');  // Importa express
 const cors = require('cors');  // Importa el middleware CORS
+const alumnosRouter = require('./routes/alumnos');
 
 // Configuración de Express
 const app = express();
