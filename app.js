@@ -35,12 +35,36 @@ async function testConnection() {
 // Probar la conexión a la base de datos
 testConnection();
 
-// Rutas de ejemplo
-app.get('/', (req, res) => {
-  res.send('Servidor funcionando');
+// Ruta para registrar un alumno
+app.post('/api/alumnos/registrar', async (req, res) => {
+    const { nombre, matricula } = req.body;
+    if (!nombre || !matricula) {
+        return res.status(400).json({ error: 'Faltan datos' });
+    }
+
+    try {
+        const connection = await pool.getConnection();
+        await connection.execute('INSERT INTO usuarios (nombre, usuario, contrasena, matricula, rol) VALUES (?, ?, ?, ?, "alumno")', [nombre, matricula, matricula, matricula]);
+        res.json({ success: true });
+    } catch (err) {
+        console.error('Error al registrar alumno:', err);
+        res.status(500).json({ error: 'Error al registrar alumno' });
+    }
+});
+
+// Ruta para obtener la lista de alumnos
+app.get('/api/alumnos', async (req, res) => {
+    try {
+        const [rows] = await pool.execute('SELECT nombre, matricula FROM usuarios WHERE rol = "alumno"');
+        res.json(rows);
+    } catch (err) {
+        console.error('Error al obtener alumnos:', err);
+        res.status(500).json({ error: 'Error al obtener alumnos' });
+    }
 });
 
 // Iniciar servidor Express
 app.listen(port, () => {
   console.log(`Servidor escuchando en el puerto ${port}`);
 });
+
