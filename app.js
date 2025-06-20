@@ -84,6 +84,29 @@ app.get('/api/asistencia/:matricula', async (req, res) => {
   }
 });
 
+// Ruta para eliminar un alumno por matrícula
+app.delete('/api/alumnos/:matricula', async (req, res) => {
+  const { matricula } = req.params;
+
+  if (!matricula) {
+    return res.status(400).json({ error: 'Matrícula no proporcionada' });
+  }
+
+  try {
+    const connection = await pool.getConnection();
+    const [result] = await connection.execute('DELETE FROM usuarios WHERE matricula = ?', [matricula]);
+
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ error: 'Alumno no encontrado' });
+    }
+
+    res.json({ success: true });
+  } catch (err) {
+    console.error('Error al eliminar alumno:', err);
+    res.status(500).json({ error: 'Error al eliminar alumno' });
+  }
+});
+
 
 // Ruta para registrar asistencia (pasar lista)
 app.post('/api/alumnos/pasarLista', async (req, res) => {
