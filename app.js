@@ -64,7 +64,7 @@ app.get('/api/alumnos', async (req, res) => {
     }
 });
 
-app.get('/api/asistencia/:matricula', async (req, res) => {
+app.get('/api/alumnos/asistencia/:matricula', async (req, res) => {
   const { matricula } = req.params;  // Obtener la matrícula del parámetro de la URL
 
   try {
@@ -106,7 +106,6 @@ app.delete('/api/alumnos/:matricula', async (req, res) => {
     res.status(500).json({ error: 'Error al eliminar alumno' });
   }
 });
-
 
 // Ruta para registrar asistencia (pasar lista)
 app.post('/api/alumnos/pasarLista', async (req, res) => {
