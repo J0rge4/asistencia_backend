@@ -2,7 +2,6 @@ require('dotenv').config();  // Carga las variables de entorno desde el archivo 
 const mysql = require('mysql2/promise');  // Importa el cliente mysql2
 const express = require('express');  // Importa express
 const cors = require('cors');  // Importa el middleware CORS
-const authRouter = require('./routes/auth');  // Importa el enrutador para autenticación
 
 // Configuración de Express
 const app = express();
@@ -66,69 +65,49 @@ app.get('/api/alumnos', async (req, res) => {
 
 // Ruta para consultar la asistencia de un alumno por matrícula y fecha
 app.get('/api/alumnos/asistencia/:matricula', async (req, res) => {
-  const { matricula } = req.params;  // Obtener la matrícula desde los parámetros de la URL
-  const { fecha } = req.query;  // Obtener la fecha desde los parámetros de la consulta
+    const { matricula } = req.params;  // Obtener la matrícula del parámetro de la URL
+    const { fecha } = req.query;       // Obtener la fecha desde los parámetros de la consulta
 
-  // Verificar que la fecha esté presente
-  if (!fecha) {
-    return res.status(400).json({ error: 'Fecha no proporcionada' });
-  }
-
-  try {
-    // Ejecutar consulta para obtener la asistencia del alumno
-    const [rows] = await pool.execute(
-      'SELECT fecha, presente FROM asistencias WHERE matricula = ? AND fecha = ?',
-      [matricula, fecha]
-    );
-    res.json(rows);  // Devolver los resultados de la consulta
-  } catch (err) {
-    console.error('Error al obtener asistencia:', err);
-    res.status(500).json({ error: 'Error al consultar asistencia' });
-  }
-});
-
-
-app.get('/api/alumnos/asistencia/:matricula', async (req, res) => {
-  const { matricula } = req.params;  // Obtener la matrícula del parámetro de la URL
-
-  try {
-    // Consulta a la base de datos para obtener los registros de asistencia del alumno
-    const [rows] = await pool.execute('SELECT fecha, presente FROM asistencias WHERE matricula = ?', [matricula]);
-
-    if (rows.length === 0) {
-      return res.status(404).json({ message: 'No se encontraron registros de asistencia para esta matrícula.' });
+    if (!fecha) {
+        return res.status(400).json({ error: 'Fecha no proporcionada' });
     }
 
-    // Responder con los datos de asistencia
-    res.json(rows);
+    try {
+        // Consultar la base de datos para obtener los registros de asistencia
+        const [rows] = await pool.execute('SELECT fecha, presente FROM asistencias WHERE matricula = ? AND fecha = ?', [matricula, fecha]);
 
-  } catch (error) {
-    console.error('Error al obtener la asistencia:', error);
-    res.status(500).json({ error: 'Error al obtener la asistencia' });
-  }
+        if (rows.length === 0) {
+            return res.status(404).json({ message: 'No se encontraron registros de asistencia para esta matrícula y fecha.' });
+        }
+
+        res.json(rows);  // Devolver los resultados de la consulta
+    } catch (error) {
+        console.error('Error al obtener la asistencia:', error);
+        res.status(500).json({ error: 'Error al obtener la asistencia' });
+    }
 });
 
 // Ruta para eliminar un alumno por matrícula
 app.delete('/api/alumnos/:matricula', async (req, res) => {
-  const { matricula } = req.params;
+    const { matricula } = req.params;
 
-  if (!matricula) {
-    return res.status(400).json({ error: 'Matrícula no proporcionada' });
-  }
-
-  try {
-    const connection = await pool.getConnection();
-    const [result] = await connection.execute('DELETE FROM usuarios WHERE matricula = ?', [matricula]);
-
-    if (result.affectedRows === 0) {
-      return res.status(404).json({ error: 'Alumno no encontrado' });
+    if (!matricula) {
+        return res.status(400).json({ error: 'Matrícula no proporcionada' });
     }
 
-    res.json({ success: true });
-  } catch (err) {
-    console.error('Error al eliminar alumno:', err);
-    res.status(500).json({ error: 'Error al eliminar alumno' });
-  }
+    try {
+        const connection = await pool.getConnection();
+        const [result] = await connection.execute('DELETE FROM usuarios WHERE matricula = ?', [matricula]);
+
+        if (result.affectedRows === 0) {
+            return res.status(404).json({ error: 'Alumno no encontrado' });
+        }
+
+        res.json({ success: true });
+    } catch (err) {
+        console.error('Error al eliminar alumno:', err);
+        res.status(500).json({ error: 'Error al eliminar alumno' });
+    }
 });
 
 // Ruta para registrar asistencia (pasar lista)
@@ -166,5 +145,4 @@ app.post('/api/alumnos/pasarLista', async (req, res) => {
 app.listen(port, () => {
   console.log(`Servidor escuchando en el puerto ${port}`);
 });
-
 
