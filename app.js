@@ -64,6 +64,30 @@ app.get('/api/alumnos', async (req, res) => {
     }
 });
 
+// Ruta para consultar la asistencia de un alumno por matrícula y fecha
+app.get('/api/alumnos/asistencia/:matricula', async (req, res) => {
+  const { matricula } = req.params;  // Obtener la matrícula desde los parámetros de la URL
+  const { fecha } = req.query;  // Obtener la fecha desde los parámetros de la consulta
+
+  // Verificar que la fecha esté presente
+  if (!fecha) {
+    return res.status(400).json({ error: 'Fecha no proporcionada' });
+  }
+
+  try {
+    // Ejecutar consulta para obtener la asistencia del alumno
+    const [rows] = await pool.execute(
+      'SELECT fecha, presente FROM asistencias WHERE matricula = ? AND fecha = ?',
+      [matricula, fecha]
+    );
+    res.json(rows);  // Devolver los resultados de la consulta
+  } catch (err) {
+    console.error('Error al obtener asistencia:', err);
+    res.status(500).json({ error: 'Error al consultar asistencia' });
+  }
+});
+
+
 app.get('/api/alumnos/asistencia/:matricula', async (req, res) => {
   const { matricula } = req.params;  // Obtener la matrícula del parámetro de la URL
 
