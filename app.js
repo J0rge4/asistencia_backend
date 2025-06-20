@@ -2,7 +2,7 @@ require('dotenv').config();  // Carga las variables de entorno desde el archivo 
 const mysql = require('mysql2/promise');  // Importa el cliente mysql2
 const express = require('express');  // Importa express
 const cors = require('cors');  // Importa el middleware CORS
-const authRouter = require('./routes/auth');
+const authRouter = require('./routes/auth');  // Importa el enrutador para autenticación
 
 // Configuración de Express
 const app = express();
@@ -64,8 +64,40 @@ app.get('/api/alumnos', async (req, res) => {
     }
 });
 
+// Ruta para registrar asistencia (pasar lista)
+app.post('/api/alumnos/pasarLista', async (req, res) => {
+    const { lista, fecha } = req.body;
+
+    // Verifica que los datos estén completos
+    if (!Array.isArray(lista) || !fecha) {
+        return res.status(400).json({ error: 'Datos incompletos o inválidos' });
+    }
+
+    try {
+        const connection = await pool.getConnection();
+        await connection.beginTransaction();
+
+        // Insertar la asistencia para cada alumno en la base de datos
+        for (const alumno of lista) {
+            await connection.execute('INSERT INTO asistencias (matricula, fecha, presente) VALUES (?, ?, ?)', 
+            [alumno.matricula, fecha, alumno.presente]);
+        }
+
+        // Confirmar la transacción
+        await connection.commit();
+        res.json({ success: true });
+
+    } catch (err) {
+        // Si ocurre un error, hacer rollback y devolver el error
+        await connection.rollback();
+        console.error('Error al registrar asistencia:', err);
+        res.status(500).json({ error: 'Error al registrar asistencia' });
+    }
+});
+
 // Iniciar servidor Express
 app.listen(port, () => {
   console.log(`Servidor escuchando en el puerto ${port}`);
 });
+
 
