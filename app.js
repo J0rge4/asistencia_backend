@@ -64,6 +64,27 @@ app.get('/api/alumnos', async (req, res) => {
     }
 });
 
+app.get('/api/asistencia/:matricula', async (req, res) => {
+  const { matricula } = req.params;  // Obtener la matrícula del parámetro de la URL
+
+  try {
+    // Consulta a la base de datos para obtener los registros de asistencia del alumno
+    const [rows] = await pool.execute('SELECT fecha, presente FROM asistencias WHERE matricula = ?', [matricula]);
+
+    if (rows.length === 0) {
+      return res.status(404).json({ message: 'No se encontraron registros de asistencia para esta matrícula.' });
+    }
+
+    // Responder con los datos de asistencia
+    res.json(rows);
+
+  } catch (error) {
+    console.error('Error al obtener la asistencia:', error);
+    res.status(500).json({ error: 'Error al obtener la asistencia' });
+  }
+});
+
+
 // Ruta para registrar asistencia (pasar lista)
 app.post('/api/alumnos/pasarLista', async (req, res) => {
     const { lista, fecha } = req.body;
